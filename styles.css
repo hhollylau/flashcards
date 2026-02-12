@@ -112,12 +112,37 @@ select {
   background: #fff;
 }
 
-.config-actions,
-.actions {
+.config-actions {
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
   margin-top: 12px;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+  justify-content: center;
+}
+
+.nav-btn {
+  flex: 1;
+  max-width: 120px;
+  font-size: 1.5rem;
+  padding: 12px 0;
+}
+
+.flip-btn {
+  flex: 1;
+  max-width: 120px;
+  font-size: 1.3rem;
+  padding: 12px 0;
+}
+
+.shuffle-btn {
+  padding: 12px 14px;
+  font-size: 1.1rem;
 }
 
 .status {
