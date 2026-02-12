@@ -460,17 +460,24 @@ sheetUrlInput.addEventListener("focus", () => {
   setTimeout(() => sheetUrlInput.select(), 0);
 });
 
-sheetUrlInput.addEventListener("paste", (e) => {
-  const text = e.clipboardData ? e.clipboardData.getData("text") : "";
-  if (text) {
-    e.preventDefault();
-    sheetUrlInput.value = text;
-  }
+let autoConnectTimer = null;
+function scheduleAutoConnect() {
+  clearTimeout(autoConnectTimer);
+  autoConnectTimer = setTimeout(() => {
+    if (parseSpreadsheetInfo(sheetUrlInput.value.trim())) {
+      connectSheet();
+    }
+  }, 300);
+}
+
+sheetUrlInput.addEventListener("paste", () => {
   sheetUrlInput.classList.remove("input-flash");
   void sheetUrlInput.offsetWidth;
   sheetUrlInput.classList.add("input-flash");
-  setTimeout(() => connectSheet(), 100);
+  scheduleAutoConnect();
 });
+
+sheetUrlInput.addEventListener("input", scheduleAutoConnect);
 
 refreshBtn.addEventListener("click", async () => {
   if (!currentSpreadsheetId) {
