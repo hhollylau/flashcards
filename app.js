@@ -407,6 +407,7 @@ async function connectSheet() {
   const info = parseSpreadsheetInfo(rawUrl);
 
   if (!info) {
+    console.log("parseSpreadsheetInfo failed for:", JSON.stringify(rawUrl));
     setFallbackDeck("Invalid Google Sheet URL. Using built-in sample deck.");
     return;
   }
@@ -456,13 +457,20 @@ async function connectSheet() {
 
 connectBtn.addEventListener("click", connectSheet);
 
-sheetUrlInput.addEventListener("focus", () => sheetUrlInput.select());
+sheetUrlInput.addEventListener("focus", () => {
+  setTimeout(() => sheetUrlInput.select(), 0);
+});
 
-sheetUrlInput.addEventListener("paste", () => {
+sheetUrlInput.addEventListener("paste", (e) => {
+  const text = e.clipboardData ? e.clipboardData.getData("text") : "";
+  if (text) {
+    e.preventDefault();
+    sheetUrlInput.value = text;
+  }
   sheetUrlInput.classList.remove("input-flash");
   void sheetUrlInput.offsetWidth;
   sheetUrlInput.classList.add("input-flash");
-  setTimeout(() => connectSheet(), 50);
+  setTimeout(() => connectSheet(), 100);
 });
 
 refreshBtn.addEventListener("click", async () => {
