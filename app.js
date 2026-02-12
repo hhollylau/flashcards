@@ -78,6 +78,8 @@ const indexLabel = document.getElementById("indexLabel");
 
 const connectBtn = document.getElementById("connectBtn");
 const refreshBtn = document.getElementById("refreshBtn");
+const settingsToggle = document.getElementById("settingsToggle");
+const settingsPanel = document.getElementById("settingsPanel");
 const flipBtn = document.getElementById("flipBtn");
 const prevBtn = document.getElementById("prevBtn");
 const nextBtn = document.getElementById("nextBtn");
@@ -504,6 +506,10 @@ deckSelect.addEventListener("change", async () => {
   }
 });
 
+settingsToggle.addEventListener("click", () => {
+  settingsPanel.classList.toggle("hidden");
+});
+
 flipBtn.addEventListener("click", () => {
   revealed = !revealed;
   render();
@@ -548,6 +554,7 @@ if (themeSelect) {
   } else {
     renderDeckOptions([{ name: "Sample Deck", gid: "fallback" }], "fallback");
     deckSelect.disabled = true;
+    settingsPanel.classList.remove("hidden");
     setFallbackDeck("Using built-in sample deck.");
   }
 })();

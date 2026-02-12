@@ -23,34 +23,73 @@ body {
   min-height: 100vh;
   display: grid;
   place-items: center;
-  padding: 20px;
+  padding: 12px;
 }
 
 .app {
-  width: min(760px, 95vw);
+  width: min(760px, 100vw - 24px);
 }
 
 header h1 {
   margin: 0;
-  font-size: 2rem;
+  font-size: 1.6rem;
 }
 
 header p {
-  margin: 8px 0 16px;
+  margin: 4px 0 10px;
   color: var(--muted);
+  font-size: 0.85rem;
 }
 
 .sheet-config,
 .card {
   background: var(--panel);
   border: 1px solid var(--line);
-  border-radius: 16px;
-  padding: 16px;
+  border-radius: 14px;
+  padding: 12px;
   box-shadow: 0 8px 30px rgba(31, 45, 42, 0.08);
 }
 
 .sheet-config {
-  margin-bottom: 14px;
+  margin-bottom: 10px;
+}
+
+.config-bar {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.deck-inline {
+  flex: 1;
+  min-width: 0;
+}
+
+.icon-btn {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  font-size: 1.3rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border-radius: 10px;
+  background: var(--accent);
+  color: #fff;
+  border: 0;
+  cursor: pointer;
+}
+
+.icon-btn:hover {
+  background: var(--accent-dark);
+}
+
+.settings-panel {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
 }
 
 label {
@@ -115,12 +154,12 @@ select {
 }
 
 #frontText {
-  margin: 14px 0 4px;
-  font-size: 2rem;
+  margin: 10px 0 4px;
+  font-size: 1.6rem;
 }
 
 #backText {
-  font-size: 1.15rem;
+  font-size: 1.05rem;
   font-weight: 600;
   color: var(--card-back);
 }
@@ -134,9 +173,10 @@ button {
   border-radius: 10px;
   background: var(--accent);
   color: #fff;
-  padding: 10px 14px;
+  padding: 8px 12px;
   cursor: pointer;
   font-weight: 600;
+  font-size: 0.9rem;
 }
 
 button:hover {

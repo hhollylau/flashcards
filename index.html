@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Flashcards</title>
-  <link rel="stylesheet" href="styles.css?v=9" />
+  <link rel="stylesheet" href="styles.css?v=10" />
 </head>
 <body>
   <main class="app">
@@ -14,24 +14,27 @@
     </header>
 
     <section class="sheet-config">
-      <label for="sheetUrl">Google Sheet URL <small style="font-weight:normal;color:var(--muted)">(paste a tab link to add it as a deck)</small></label>
-      <input id="sheetUrl" type="url" placeholder="Paste a Google Sheet link here..." />
-
-      <div class="config-actions">
-        <button id="connectBtn">Connect sheet</button>
-        <button id="refreshBtn">Refresh cards</button>
+      <div class="config-bar">
+        <select id="deckSelect" class="deck-inline"></select>
+        <button id="refreshBtn" class="icon-btn" title="Refresh cards">&#x21bb;</button>
+        <button id="settingsToggle" class="icon-btn" title="Settings">&#x22ee;</button>
       </div>
 
-      <label for="deckSelect" class="deck-label">Deck (tab)</label>
-      <select id="deckSelect"></select>
+      <div id="settingsPanel" class="settings-panel hidden">
+        <label for="sheetUrl">Sheet URL <small style="font-weight:normal;color:var(--muted)">(paste a tab link to add it as a deck)</small></label>
+        <input id="sheetUrl" type="url" placeholder="Paste a Google Sheet link here..." />
+        <div class="config-actions">
+          <button id="connectBtn">Connect sheet</button>
+        </div>
 
-      <label for="themeSelect" class="deck-label">Color theme</label>
-      <select id="themeSelect">
-        <option value="warm">Warm Paper</option>
-        <option value="ocean">Ocean</option>
-        <option value="forest">Forest</option>
-        <option value="sunset">Sunset</option>
-      </select>
+        <label for="themeSelect" class="deck-label">Color theme</label>
+        <select id="themeSelect">
+          <option value="warm">Warm Paper</option>
+          <option value="ocean">Ocean</option>
+          <option value="forest">Forest</option>
+          <option value="sunset">Sunset</option>
+        </select>
+      </div>
 
       <p id="status" class="status">Using built-in sample deck.</p>
     </section>
@@ -52,6 +55,6 @@
     </section>
   </main>
 
-  <script src="app.js?v=9"></script>
+  <script src="app.js?v=10"></script>
 </body>
 </html>
