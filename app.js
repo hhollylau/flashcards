@@ -1,5 +1,53 @@
 ﻿const STORAGE_URL_KEY = "flashcards_sheet_url";
 const STORAGE_GID_KEY = "flashcards_sheet_gid";
+const STORAGE_THEME_KEY = "flashcards_theme";
+
+const THEMES = {
+  warm: {
+    bgTop: "#f7f1e7",
+    bgBottom: "#ece4d8",
+    panel: "#fffaf2",
+    ink: "#1f2d2a",
+    accent: "#ce5a3a",
+    accentDark: "#9f4329",
+    muted: "#66756f",
+    line: "#dfd4c4",
+    cardBack: "#3f4f49"
+  },
+  ocean: {
+    bgTop: "#e9f5ff",
+    bgBottom: "#d3e8f5",
+    panel: "#f6fcff",
+    ink: "#183143",
+    accent: "#2376b7",
+    accentDark: "#185d95",
+    muted: "#4e6a7c",
+    line: "#c4dae9",
+    cardBack: "#295269"
+  },
+  forest: {
+    bgTop: "#edf5ea",
+    bgBottom: "#dcebd8",
+    panel: "#f8fdf6",
+    ink: "#1f3524",
+    accent: "#3f8a4a",
+    accentDark: "#2f6f3a",
+    muted: "#5f7564",
+    line: "#c9ddcb",
+    cardBack: "#2f5134"
+  },
+  sunset: {
+    bgTop: "#fff1e8",
+    bgBottom: "#ffe0cf",
+    panel: "#fff8f4",
+    ink: "#3a2420",
+    accent: "#df6b3f",
+    accentDark: "#c2542c",
+    muted: "#86645c",
+    line: "#efd1c2",
+    cardBack: "#74473d"
+  }
+};
 
 const fallbackCards = [
   { front: "Photosynthesis", back: "Process plants use to convert light into chemical energy." },
@@ -21,6 +69,7 @@ let currentSpreadsheetId = "";
 
 const sheetUrlInput = document.getElementById("sheetUrl");
 const deckSelect = document.getElementById("deckSelect");
+const themeSelect = document.getElementById("themeSelect");
 const statusLabel = document.getElementById("status");
 const frontText = document.getElementById("frontText");
 const backText = document.getElementById("backText");
@@ -35,6 +84,25 @@ const shuffleBtn = document.getElementById("shuffleBtn");
 
 function setStatus(message) {
   statusLabel.textContent = message;
+}
+
+function applyTheme(themeName) {
+  const key = THEMES[themeName] ? themeName : "warm";
+  const theme = THEMES[key];
+  const root = document.documentElement;
+
+  root.style.setProperty("--bg-top", theme.bgTop);
+  root.style.setProperty("--bg-bottom", theme.bgBottom);
+  root.style.setProperty("--panel", theme.panel);
+  root.style.setProperty("--ink", theme.ink);
+  root.style.setProperty("--accent", theme.accent);
+  root.style.setProperty("--accent-dark", theme.accentDark);
+  root.style.setProperty("--muted", theme.muted);
+  root.style.setProperty("--line", theme.line);
+  root.style.setProperty("--card-back", theme.cardBack);
+
+  themeSelect.value = key;
+  localStorage.setItem(STORAGE_THEME_KEY, key);
 }
 
 function parseSpreadsheetInfo(rawUrl) {
@@ -372,8 +440,11 @@ flipBtn.addEventListener("click", () => {
 nextBtn.addEventListener("click", goNext);
 prevBtn.addEventListener("click", goPrev);
 shuffleBtn.addEventListener("click", shuffleDeck);
+themeSelect.addEventListener("change", () => applyTheme(themeSelect.value));
 
 (async function init() {
+  applyTheme(localStorage.getItem(STORAGE_THEME_KEY) || "warm");
+
   const savedUrl = localStorage.getItem(STORAGE_URL_KEY) || "";
   sheetUrlInput.value = savedUrl;
 

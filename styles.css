@@ -1,11 +1,14 @@
 ﻿:root {
   --bg: #f3efe7;
+  --bg-top: #f7f1e7;
+  --bg-bottom: #ece4d8;
   --panel: #fffaf2;
   --ink: #1f2d2a;
   --accent: #ce5a3a;
   --accent-dark: #9f4329;
   --muted: #66756f;
   --line: #dfd4c4;
+  --card-back: #3f4f49;
 }
 
 * {
@@ -15,7 +18,7 @@
 body {
   margin: 0;
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  background: radial-gradient(circle at top, #f7f1e7, #ece4d8 70%);
+  background: radial-gradient(circle at top, var(--bg-top), var(--bg-bottom) 70%);
   color: var(--ink);
   min-height: 100vh;
   display: grid;
@@ -99,7 +102,7 @@ select {
 #backText {
   font-size: 1.15rem;
   font-weight: 600;
-  color: #3f4f49;
+  color: var(--card-back);
 }
 
 .hidden {
