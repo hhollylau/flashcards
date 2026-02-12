@@ -285,38 +285,8 @@ function renderDeckOptions(decks, preferredGid) {
 }
 
 async function discoverDeckTabs(spreadsheetId) {
-  const urls = [
-    `https://spreadsheets.google.com/feeds/worksheets/${spreadsheetId}/public/basic?alt=json`,
-    `https://spreadsheets.google.com/feeds/worksheets/${spreadsheetId}/public/full?alt=json`
-  ];
-
-  for (const url of urls) {
-    try {
-      const response = await fetch(url, { cache: "no-store" });
-      if (!response.ok) {
-        continue;
-      }
-
-      const data = await response.json();
-      const entries = data?.feed?.entry || [];
-      const decks = entries
-        .map(entry => {
-          const name = entry?.title?.$t || "";
-          const idText = entry?.id?.$t || "";
-          const match = idText.match(/\/([0-9]+)$/);
-          const gid = match ? match[1] : "";
-          return { name, gid };
-        })
-        .filter(item => item.name && item.gid);
-
-      if (decks.length) {
-        return decks;
-      }
-    } catch {
-      // Try next discovery endpoint.
-    }
-  }
-
+  // Legacy public worksheet feed endpoints now return 404 for many sheets.
+  // Keep explicit fallback behavior instead of spamming failing network calls.
   return [];
 }
 
@@ -479,3 +449,4 @@ if (themeSelect) {
     setFallbackDeck("Using built-in sample deck.");
   }
 })();
+
