@@ -1,6 +1,7 @@
 ﻿const STORAGE_URL_KEY = "flashcards_sheet_url";
 const STORAGE_GID_KEY = "flashcards_sheet_gid";
 const STORAGE_THEME_KEY = "flashcards_theme";
+const STORAGE_SAVED_DECKS_KEY = "flashcards_saved_decks";
 
 const THEMES = {
   warm: {
@@ -98,8 +99,53 @@ function safeSet(key, value) {
   }
 }
 
+function getSavedDecks(spreadsheetId) {
+  try {
+    const all = JSON.parse(safeGet(STORAGE_SAVED_DECKS_KEY, "{}"));
+    return all[spreadsheetId] || [];
+  } catch {
+    return [];
+  }
+}
+
+function saveDeckTab(spreadsheetId, gid, name) {
+  try {
+    const all = JSON.parse(safeGet(STORAGE_SAVED_DECKS_KEY, "{}"));
+    if (!all[spreadsheetId]) all[spreadsheetId] = [];
+    if (!all[spreadsheetId].some(d => d.gid === gid)) {
+      all[spreadsheetId].push({ gid, name });
+      safeSet(STORAGE_SAVED_DECKS_KEY, JSON.stringify(all));
+    }
+  } catch {
+    // Ignore storage errors.
+  }
+}
+
+function suggestDeckName(csvText) {
+  const rows = parseCsvRows(csvText);
+  if (!rows.length) return null;
+  const firstRow = rows[0];
+  const recognizedHeaders = [
+    "front", "back", "term", "definition", "question", "answer",
+    "prompt", "response", "word", "meaning", "italian", "english", "a", "b"
+  ];
+  const genericHeaders = ["front", "back", "a", "b"];
+  const lower = firstRow.map(cell => cell.trim().toLowerCase());
+  if (!lower.some(h => recognizedHeaders.includes(h))) return null;
+  const meaningful = firstRow
+    .map(cell => cell.trim())
+    .filter(cell => cell && !genericHeaders.includes(cell.toLowerCase()));
+  if (!meaningful.length) return null;
+  return meaningful
+    .map(h => h.charAt(0).toUpperCase() + h.slice(1).toLowerCase())
+    .join(" / ");
+}
+
 function setStatus(message) {
   statusLabel.textContent = message;
+  statusLabel.classList.remove("status-flash");
+  void statusLabel.offsetWidth;
+  statusLabel.classList.add("status-flash");
 }
 
 function applyTheme(themeName) {
@@ -284,12 +330,6 @@ function renderDeckOptions(decks, preferredGid) {
   }
 }
 
-async function discoverDeckTabs(spreadsheetId) {
-  // Legacy public worksheet feed endpoints now return 404 for many sheets.
-  // Keep explicit fallback behavior instead of spamming failing network calls.
-  return [];
-}
-
 async function loadDeckByGid(spreadsheetId, gid, statusPrefix = "") {
   const csvUrl = csvUrlForGid(spreadsheetId, gid);
   const response = await fetch(csvUrl, { cache: "no-store" });
@@ -374,28 +414,56 @@ async function connectSheet() {
   safeSet(STORAGE_URL_KEY, rawUrl);
   currentSpreadsheetId = info.id;
 
-  const discovered = await discoverDeckTabs(currentSpreadsheetId);
-  const availableDecks = discovered.length ? discovered : [{ name: `Selected tab (gid ${info.gid})`, gid: info.gid }];
-
-  const preferredSavedGid = safeGet(STORAGE_GID_KEY, "") || info.gid || "0";
-  const preferredGid = availableDecks.some(item => item.gid === preferredSavedGid)
-    ? preferredSavedGid
-    : availableDecks[0].gid;
-
-  renderDeckOptions(availableDecks, preferredGid);
-
-  const statusPrefix = !discovered.length
-    ? "Tab names unavailable. Using tab from URL gid; to switch tabs, paste a URL with that tab open. "
-    : "";
-
+  let csvText;
   try {
-    await loadDeckByGid(currentSpreadsheetId, preferredGid, statusPrefix);
+    const csvUrl = csvUrlForGid(info.id, info.gid);
+    const response = await fetch(csvUrl, { cache: "no-store" });
+    if (!response.ok) throw new Error(`Request failed (${response.status})`);
+    csvText = await response.text();
   } catch (error) {
-    setFallbackDeck(`Could not load selected deck. ${error.message}`);
+    const savedDecks = getSavedDecks(info.id);
+    if (savedDecks.length) renderDeckOptions(savedDecks, info.gid);
+    setFallbackDeck(`Could not load deck. ${error.message}`);
+    return;
   }
+
+  const parsed = parseCsv(csvText);
+  if (!parsed.length) {
+    setFallbackDeck("No valid cards found.");
+    return;
+  }
+
+  let savedDecks = getSavedDecks(info.id);
+  const isNew = !savedDecks.some(d => d.gid === info.gid);
+  if (isNew) {
+    const name = suggestDeckName(csvText) || `Deck ${savedDecks.length + 1}`;
+    saveDeckTab(info.id, info.gid, name);
+    savedDecks = getSavedDecks(info.id);
+  }
+
+  renderDeckOptions(savedDecks, info.gid);
+
+  deck = parsed;
+  current = 0;
+  revealed = false;
+  safeSet(STORAGE_GID_KEY, info.gid);
+
+  const selectedName = deckSelect.options[deckSelect.selectedIndex]?.text || `gid ${info.gid}`;
+  const prefix = isNew ? "New deck added! " : "";
+  setStatus(`${prefix}Loaded ${deck.length} cards from: ${selectedName}.`);
+  render();
 }
 
 connectBtn.addEventListener("click", connectSheet);
+
+sheetUrlInput.addEventListener("focus", () => sheetUrlInput.select());
+
+sheetUrlInput.addEventListener("paste", () => {
+  sheetUrlInput.classList.remove("input-flash");
+  void sheetUrlInput.offsetWidth;
+  sheetUrlInput.classList.add("input-flash");
+  setTimeout(() => connectSheet(), 50);
+});
 
 refreshBtn.addEventListener("click", async () => {
   if (!currentSpreadsheetId) {
@@ -442,7 +510,27 @@ if (themeSelect) {
   sheetUrlInput.value = savedUrl;
 
   if (savedUrl) {
-    await connectSheet();
+    const info = parseSpreadsheetInfo(savedUrl);
+    if (info) {
+      currentSpreadsheetId = info.id;
+      const savedDecks = getSavedDecks(info.id);
+      if (savedDecks.length) {
+        const preferredGid = safeGet(STORAGE_GID_KEY, "") || info.gid || "0";
+        const gidToLoad = savedDecks.some(d => d.gid === preferredGid)
+          ? preferredGid
+          : savedDecks[0].gid;
+        renderDeckOptions(savedDecks, gidToLoad);
+        try {
+          await loadDeckByGid(currentSpreadsheetId, gidToLoad);
+        } catch (error) {
+          setFallbackDeck(`Could not load deck. ${error.message}`);
+        }
+      } else {
+        await connectSheet();
+      }
+    } else {
+      setFallbackDeck("Saved URL is invalid. Using sample deck.");
+    }
   } else {
     renderDeckOptions([{ name: "Sample Deck", gid: "fallback" }], "fallback");
     deckSelect.disabled = true;

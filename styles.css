@@ -85,6 +85,26 @@ select {
   margin: 10px 0 0;
   color: var(--muted);
   font-size: 0.95rem;
+  padding: 4px 0;
+  border-radius: 6px;
+}
+
+@keyframes status-flash {
+  0% { background-color: rgba(206, 90, 58, 0.12); }
+  100% { background-color: transparent; }
+}
+
+.status-flash {
+  animation: status-flash 1.2s ease-out;
+}
+
+@keyframes input-flash {
+  0% { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(206, 90, 58, 0.2); }
+  100% { border-color: var(--line); box-shadow: none; }
+}
+
+.input-flash {
+  animation: input-flash 1s ease-out;
 }
 
 .meta {
