@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Italian B2 Flashcards</title>
+  <title>Flashcards</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
   <main class="app">
     <header>
-      <h1>Italian B2 Flashcards</h1>
+      <h1>Flashcards</h1>
       <p>Update your Google Sheet, refresh here, and study instantly.</p>
     </header>
 
@@ -25,17 +25,15 @@
       <label for="deckSelect" class="deck-label">Deck (tab)</label>
       <select id="deckSelect"></select>
 
-      <p id="status" class="status">Using built-in fallback deck.</p>
+      <p id="status" class="status">Using built-in sample deck.</p>
     </section>
 
     <section class="card" id="card">
       <div class="meta">
         <span id="indexLabel">Card 0/0</span>
       </div>
-      <h2 id="italianWord">Loading...</h2>
-      <p id="partOfSpeech">-</p>
-      <p id="englishMeaning" class="hidden">-</p>
-      <p id="example" class="hidden">-</p>
+      <h2 id="frontText">Loading...</h2>
+      <p id="backText" class="hidden">-</p>
 
       <div class="actions">
         <button id="flipBtn">Flip</button>

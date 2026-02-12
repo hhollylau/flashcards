@@ -91,23 +91,14 @@ select {
   color: var(--muted);
 }
 
-#italianWord {
+#frontText {
   margin: 14px 0 4px;
   font-size: 2rem;
 }
 
-#partOfSpeech {
-  margin-top: 0;
-  color: var(--muted);
-}
-
-#englishMeaning {
+#backText {
   font-size: 1.15rem;
   font-weight: 600;
-}
-
-#example {
-  font-style: italic;
   color: #3f4f49;
 }
 

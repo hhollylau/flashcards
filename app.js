@@ -1,32 +1,29 @@
-﻿const STORAGE_URL_KEY = "italian_sheet_url";
-const STORAGE_GID_KEY = "italian_sheet_gid";
+﻿const STORAGE_URL_KEY = "flashcards_sheet_url";
+const STORAGE_GID_KEY = "flashcards_sheet_gid";
 
-const fallbackWords = [
-  { it: "affrontare", pos: "verb", en: "to tackle, deal with", ex: "Dobbiamo affrontare il problema con calma." },
-  { it: "ambito", pos: "noun", en: "field, area", ex: "Lavora nell'ambito della ricerca medica." },
-  { it: "coerente", pos: "adjective", en: "consistent", ex: "La tua spiegazione e coerente." },
-  { it: "contribuire", pos: "verb", en: "to contribute", ex: "Tutti devono contribuire al risultato." },
-  { it: "efficace", pos: "adjective", en: "effective", ex: "Abbiamo trovato una soluzione efficace." },
-  { it: "fiducia", pos: "noun", en: "trust", ex: "La fiducia si costruisce col tempo." },
-  { it: "impatto", pos: "noun", en: "impact", ex: "La decisione avra un forte impatto." },
-  { it: "obiettivo", pos: "noun", en: "goal, objective", ex: "L'obiettivo e ridurre i costi." },
-  { it: "rafforzare", pos: "verb", en: "to strengthen", ex: "Dobbiamo rafforzare la collaborazione." },
-  { it: "sviluppare", pos: "verb", en: "to develop", ex: "Vogliono sviluppare nuove competenze." }
+const fallbackCards = [
+  { front: "Photosynthesis", back: "Process plants use to convert light into chemical energy." },
+  { front: "HTTP 404", back: "Status code meaning resource not found." },
+  { front: "Mitochondria", back: "Organelles that produce ATP for the cell." },
+  { front: "Pi", back: "Ratio of a circle's circumference to its diameter." },
+  { front: "Refactor", back: "Improve code structure without changing behavior." },
+  { front: "Inflation", back: "General increase in prices over time." },
+  { front: "Osmosis", back: "Movement of water across a semipermeable membrane." },
+  { front: "Git rebase", back: "Reapply commits onto a new base commit." },
+  { front: "Photosphere", back: "Visible surface layer of the Sun." },
+  { front: "Polymorphism", back: "Ability for objects to take multiple forms." }
 ];
 
 let deck = [];
 let current = 0;
 let revealed = false;
 let currentSpreadsheetId = "";
-let availableDecks = [];
 
 const sheetUrlInput = document.getElementById("sheetUrl");
 const deckSelect = document.getElementById("deckSelect");
 const statusLabel = document.getElementById("status");
-const italianWord = document.getElementById("italianWord");
-const partOfSpeech = document.getElementById("partOfSpeech");
-const englishMeaning = document.getElementById("englishMeaning");
-const example = document.getElementById("example");
+const frontText = document.getElementById("frontText");
+const backText = document.getElementById("backText");
 const indexLabel = document.getElementById("indexLabel");
 
 const connectBtn = document.getElementById("connectBtn");
@@ -66,14 +63,14 @@ function csvUrlForGid(spreadsheetId, gid) {
 }
 
 function setFallbackDeck(message) {
-  deck = [...fallbackWords];
+  deck = [...fallbackCards];
   current = 0;
   revealed = false;
   setStatus(message);
   render();
 }
 
-function parseCsv(csvText) {
+function parseCsvRows(csvText) {
   const rows = [];
   let currentCell = "";
   let currentRow = [];
@@ -122,37 +119,49 @@ function parseCsv(csvText) {
     }
   }
 
+  return rows;
+}
+
+function parseCsv(csvText) {
+  const rows = parseCsvRows(csvText);
   if (!rows.length) {
     return [];
   }
 
-  const firstRowLower = rows[0].map(col => col.toLowerCase());
-  const firstCell = firstRowLower[0] || "";
-  const secondCell = firstRowLower[1] || "";
-  const hasHeader =
-    firstCell === "it" ||
-    firstCell === "italian" ||
-    firstCell === "a" ||
-    secondCell === "en" ||
-    secondCell === "english" ||
-    secondCell === "b";
+  const firstRow = rows[0].map(cell => cell.toLowerCase());
+  const isHeader = value => [
+    "front", "back", "term", "definition", "question", "answer", "prompt", "response",
+    "word", "meaning", "italian", "english", "a", "b"
+  ].includes(value);
+
+  const frontHeaderCandidates = ["front", "term", "question", "prompt", "word", "italian", "a"];
+  const backHeaderCandidates = ["back", "definition", "answer", "response", "meaning", "english", "b"];
+
+  let frontCol = firstRow.findIndex(value => frontHeaderCandidates.includes(value));
+  let backCol = firstRow.findIndex(value => backHeaderCandidates.includes(value));
+
+  const hasRecognizedHeader = firstRow.some(isHeader);
+  const startIndex = hasRecognizedHeader ? 1 : 0;
+
+  if (frontCol === -1) {
+    frontCol = 0;
+  }
+
+  if (backCol === -1 || backCol === frontCol) {
+    backCol = frontCol === 0 ? 1 : 0;
+  }
 
   const parsed = [];
-  const startIndex = hasHeader ? 1 : 0;
   for (let i = startIndex; i < rows.length; i += 1) {
     const row = rows[i];
-    const it = row[0] || "";
-    const en = row[1] || "";
-    if (!it || !en) {
+    const front = (row[frontCol] || "").trim();
+    const back = (row[backCol] || "").trim();
+
+    if (!front || !back) {
       continue;
     }
 
-    parsed.push({
-      it,
-      pos: "",
-      en,
-      ex: ""
-    });
+    parsed.push({ front, back });
   }
 
   return parsed;
@@ -233,7 +242,7 @@ async function loadDeckByGid(spreadsheetId, gid) {
   const csv = await response.text();
   const parsed = parseCsv(csv);
   if (!parsed.length) {
-    throw new Error("No valid rows found. Expected two columns: A=Italian, B=English");
+    throw new Error("No valid cards found. Use any two populated columns (or headers like front/back). ");
   }
 
   deck = parsed;
@@ -249,31 +258,21 @@ async function loadDeckByGid(spreadsheetId, gid) {
 function render() {
   if (!deck.length) {
     indexLabel.textContent = "Card 0/0";
-    italianWord.textContent = "No cards found";
-    partOfSpeech.textContent = "";
-    englishMeaning.textContent = "Expected two columns: A=Italian, B=English";
-    englishMeaning.classList.remove("hidden");
-    example.classList.add("hidden");
+    frontText.textContent = "No cards found";
+    backText.textContent = "Use any two populated columns (for example A/B or front/back).";
+    backText.classList.remove("hidden");
     return;
   }
 
   const card = deck[current];
   indexLabel.textContent = `Card ${current + 1}/${deck.length}`;
-  italianWord.textContent = card.it;
-  partOfSpeech.textContent = card.pos || "";
-  englishMeaning.textContent = card.en;
-  example.textContent = card.ex || "";
+  frontText.textContent = card.front;
+  backText.textContent = card.back;
 
   if (revealed) {
-    englishMeaning.classList.remove("hidden");
-    if (card.ex) {
-      example.classList.remove("hidden");
-    } else {
-      example.classList.add("hidden");
-    }
+    backText.classList.remove("hidden");
   } else {
-    englishMeaning.classList.add("hidden");
-    example.classList.add("hidden");
+    backText.classList.add("hidden");
   }
 }
 
@@ -310,7 +309,7 @@ async function connectSheet() {
   const info = parseSpreadsheetInfo(rawUrl);
 
   if (!info) {
-    setFallbackDeck("Invalid Google Sheet URL. Using fallback deck.");
+    setFallbackDeck("Invalid Google Sheet URL. Using built-in sample deck.");
     return;
   }
 
@@ -318,7 +317,7 @@ async function connectSheet() {
   currentSpreadsheetId = info.id;
 
   const discovered = await discoverDeckTabs(currentSpreadsheetId);
-  availableDecks = discovered.length ? discovered : [{ name: "Default (gid 0)", gid: "0" }];
+  const availableDecks = discovered.length ? discovered : [{ name: "Default (gid 0)", gid: "0" }];
 
   const preferredSavedGid = localStorage.getItem(STORAGE_GID_KEY) || info.gid || "0";
   const preferredGid = availableDecks.some(item => item.gid === preferredSavedGid)
@@ -381,8 +380,8 @@ shuffleBtn.addEventListener("click", shuffleDeck);
   if (savedUrl) {
     await connectSheet();
   } else {
-    renderDeckOptions([{ name: "Fallback Deck", gid: "fallback" }], "fallback");
+    renderDeckOptions([{ name: "Sample Deck", gid: "fallback" }], "fallback");
     deckSelect.disabled = true;
-    setFallbackDeck("Using built-in fallback deck.");
+    setFallbackDeck("Using built-in sample deck.");
   }
 })();
