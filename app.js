@@ -82,6 +82,22 @@ const prevBtn = document.getElementById("prevBtn");
 const nextBtn = document.getElementById("nextBtn");
 const shuffleBtn = document.getElementById("shuffleBtn");
 
+function safeGet(key, fallback = "") {
+  try {
+    return localStorage.getItem(key) || fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function safeSet(key, value) {
+  try {
+    localStorage.setItem(key, value);
+  } catch {
+    // Ignore storage errors.
+  }
+}
+
 function setStatus(message) {
   statusLabel.textContent = message;
 }
@@ -101,8 +117,10 @@ function applyTheme(themeName) {
   root.style.setProperty("--line", theme.line);
   root.style.setProperty("--card-back", theme.cardBack);
 
-  themeSelect.value = key;
-  localStorage.setItem(STORAGE_THEME_KEY, key);
+  if (themeSelect) {
+    themeSelect.value = key;
+  }
+  safeSet(STORAGE_THEME_KEY, key);
 }
 
 function parseSpreadsheetInfo(rawUrl) {
@@ -119,7 +137,9 @@ function parseSpreadsheetInfo(rawUrl) {
     }
 
     const id = match[1];
-    const gid = url.searchParams.get("gid") || "0";
+    const gidFromQuery = url.searchParams.get("gid");
+    const gidFromHash = (url.hash.match(/gid=([0-9]+)/) || [])[1];
+    const gid = gidFromQuery || gidFromHash || "0";
     return { id, gid };
   } catch {
     return null;
@@ -300,7 +320,7 @@ async function discoverDeckTabs(spreadsheetId) {
   return [];
 }
 
-async function loadDeckByGid(spreadsheetId, gid) {
+async function loadDeckByGid(spreadsheetId, gid, statusPrefix = "") {
   const csvUrl = csvUrlForGid(spreadsheetId, gid);
   const response = await fetch(csvUrl, { cache: "no-store" });
   if (!response.ok) {
@@ -316,10 +336,10 @@ async function loadDeckByGid(spreadsheetId, gid) {
   deck = parsed;
   current = 0;
   revealed = false;
-  localStorage.setItem(STORAGE_GID_KEY, gid);
+  safeSet(STORAGE_GID_KEY, gid);
 
   const selectedName = deckSelect.options[deckSelect.selectedIndex]?.text || `gid ${gid}`;
-  setStatus(`Loaded ${deck.length} cards from deck: ${selectedName}.`);
+  setStatus(`${statusPrefix}Loaded ${deck.length} cards from deck: ${selectedName}.`);
   render();
 }
 
@@ -381,25 +401,25 @@ async function connectSheet() {
     return;
   }
 
-  localStorage.setItem(STORAGE_URL_KEY, rawUrl);
+  safeSet(STORAGE_URL_KEY, rawUrl);
   currentSpreadsheetId = info.id;
 
   const discovered = await discoverDeckTabs(currentSpreadsheetId);
-  const availableDecks = discovered.length ? discovered : [{ name: "Default (gid 0)", gid: "0" }];
+  const availableDecks = discovered.length ? discovered : [{ name: `Selected tab (gid ${info.gid})`, gid: info.gid }];
 
-  const preferredSavedGid = localStorage.getItem(STORAGE_GID_KEY) || info.gid || "0";
+  const preferredSavedGid = safeGet(STORAGE_GID_KEY, "") || info.gid || "0";
   const preferredGid = availableDecks.some(item => item.gid === preferredSavedGid)
     ? preferredSavedGid
     : availableDecks[0].gid;
 
   renderDeckOptions(availableDecks, preferredGid);
 
-  if (!discovered.length) {
-    setStatus("Connected, but tab names are unavailable. Using gid-based fallback deck selection.");
-  }
+  const statusPrefix = !discovered.length
+    ? "Tab names unavailable. Using tab from URL gid; to switch tabs, paste a URL with that tab open. "
+    : "";
 
   try {
-    await loadDeckByGid(currentSpreadsheetId, preferredGid);
+    await loadDeckByGid(currentSpreadsheetId, preferredGid, statusPrefix);
   } catch (error) {
     setFallbackDeck(`Could not load selected deck. ${error.message}`);
   }
@@ -440,12 +460,15 @@ flipBtn.addEventListener("click", () => {
 nextBtn.addEventListener("click", goNext);
 prevBtn.addEventListener("click", goPrev);
 shuffleBtn.addEventListener("click", shuffleDeck);
-themeSelect.addEventListener("change", () => applyTheme(themeSelect.value));
+
+if (themeSelect) {
+  themeSelect.addEventListener("change", () => applyTheme(themeSelect.value));
+}
 
 (async function init() {
-  applyTheme(localStorage.getItem(STORAGE_THEME_KEY) || "warm");
+  applyTheme(safeGet(STORAGE_THEME_KEY, "warm"));
 
-  const savedUrl = localStorage.getItem(STORAGE_URL_KEY) || "";
+  const savedUrl = safeGet(STORAGE_URL_KEY, "");
   sheetUrlInput.value = savedUrl;
 
   if (savedUrl) {
