@@ -177,7 +177,7 @@ function parseSpreadsheetInfo(rawUrl) {
 
   try {
     const url = new URL(trimmed);
-    const match = url.pathname.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
+    const match = url.pathname.match(/\/spreadsheets\/(?:u\/\d+\/)?d\/([a-zA-Z0-9-_]+)/);
     if (!match) {
       return null;
     }
@@ -407,7 +407,6 @@ async function connectSheet() {
   const info = parseSpreadsheetInfo(rawUrl);
 
   if (!info) {
-    console.log("parseSpreadsheetInfo failed for:", JSON.stringify(rawUrl));
     setFallbackDeck("Invalid Google Sheet URL. Using built-in sample deck.");
     return;
   }
