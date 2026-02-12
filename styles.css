@@ -1,0 +1,130 @@
+﻿:root {
+  --bg: #f3efe7;
+  --panel: #fffaf2;
+  --ink: #1f2d2a;
+  --accent: #ce5a3a;
+  --accent-dark: #9f4329;
+  --muted: #66756f;
+  --line: #dfd4c4;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  background: radial-gradient(circle at top, #f7f1e7, #ece4d8 70%);
+  color: var(--ink);
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+}
+
+.app {
+  width: min(760px, 95vw);
+}
+
+header h1 {
+  margin: 0;
+  font-size: 2rem;
+}
+
+header p {
+  margin: 8px 0 16px;
+  color: var(--muted);
+}
+
+.sheet-config,
+.card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 8px 30px rgba(31, 45, 42, 0.08);
+}
+
+.sheet-config {
+  margin-bottom: 14px;
+}
+
+label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.deck-label {
+  margin-top: 12px;
+}
+
+input[type="url"],
+select {
+  width: 100%;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  font-size: 0.95rem;
+  background: #fff;
+}
+
+.config-actions,
+.actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+
+.status {
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+#italianWord {
+  margin: 14px 0 4px;
+  font-size: 2rem;
+}
+
+#partOfSpeech {
+  margin-top: 0;
+  color: var(--muted);
+}
+
+#englishMeaning {
+  font-size: 1.15rem;
+  font-weight: 600;
+}
+
+#example {
+  font-style: italic;
+  color: #3f4f49;
+}
+
+.hidden {
+  display: none;
+}
+
+button {
+  border: 0;
+  border-radius: 10px;
+  background: var(--accent);
+  color: #fff;
+  padding: 10px 14px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+button:hover {
+  background: var(--accent-dark);
+}

@@ -1,0 +1,51 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Italian B2 Flashcards</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="app">
+    <header>
+      <h1>Italian B2 Flashcards</h1>
+      <p>Update your Google Sheet, refresh here, and study instantly.</p>
+    </header>
+
+    <section class="sheet-config">
+      <label for="sheetUrl">Google Sheet URL</label>
+      <input id="sheetUrl" type="url" placeholder="https://docs.google.com/spreadsheets/d/..." />
+
+      <div class="config-actions">
+        <button id="connectBtn">Connect sheet</button>
+        <button id="refreshBtn">Refresh cards</button>
+      </div>
+
+      <label for="deckSelect" class="deck-label">Deck (tab)</label>
+      <select id="deckSelect"></select>
+
+      <p id="status" class="status">Using built-in fallback deck.</p>
+    </section>
+
+    <section class="card" id="card">
+      <div class="meta">
+        <span id="indexLabel">Card 0/0</span>
+      </div>
+      <h2 id="italianWord">Loading...</h2>
+      <p id="partOfSpeech">-</p>
+      <p id="englishMeaning" class="hidden">-</p>
+      <p id="example" class="hidden">-</p>
+
+      <div class="actions">
+        <button id="flipBtn">Flip</button>
+        <button id="prevBtn">Previous</button>
+        <button id="nextBtn">Next</button>
+        <button id="shuffleBtn">Shuffle</button>
+      </div>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
